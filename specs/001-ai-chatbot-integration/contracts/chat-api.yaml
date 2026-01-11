@@ -1,0 +1,60 @@
+# Chat API Contract
+
+## POST /api/chat
+
+### Description
+Handles chat interactions with the AI assistant. The AI agent can perform task operations through MCP tools during the conversation.
+
+### Authentication
+JWT Bearer token required in Authorization header
+
+### Request Body
+```json
+{
+  "message": "string",
+  "conversation_id": "integer (optional)"
+}
+```
+
+### Response
+```json
+{
+  "conversation_id": "integer",
+  "message": "string",
+  "timestamp": "ISO 8601 datetime"
+}
+```
+
+### Error Responses
+- 400: Bad Request - Invalid request body
+- 401: Unauthorized - Invalid or missing JWT token
+- 403: Forbidden - User trying to access another user's conversation
+- 500: Internal Server Error - AI service or database error
+
+### MCP Tools Available to Agent
+The AI agent has access to the following tools during conversation:
+
+#### add_task
+- **Description**: Creates a new task
+- **Parameters**: {"title": "string", "description": "string (optional)"}
+- **Response**: {"task_id": "integer"}
+
+#### list_tasks
+- **Description**: Lists all tasks for the current user
+- **Parameters**: {}
+- **Response**: [{"id": "integer", "title": "string", "completed": "boolean"}]
+
+#### complete_task
+- **Description**: Marks a task as completed
+- **Parameters**: {"task_id": "integer"}
+- **Response**: {"success": "boolean"}
+
+#### update_task
+- **Description**: Updates a task's details
+- **Parameters**: {"task_id": "integer", "title": "string (optional)", "description": "string (optional)", "completed": "boolean (optional)"}
+- **Response**: {"success": "boolean"}
+
+#### delete_task
+- **Description**: Deletes a task
+- **Parameters**: {"task_id": "integer"}
+- **Response**: {"success": "boolean"}

@@ -1,0 +1,54 @@
+To run the updated application and test the new functionalities, please follow these steps:
+
+1.  **Navigate to the backend directory:**
+    ```bash
+    cd backend
+    ```
+
+2.  **Start the FastAPI application:**
+    ```bash
+    uvicorn main:app --reload
+    ```
+    (Or `python main.py` if `uvicorn` is not directly in your path, but `uvicorn main:app --reload` is generally preferred for development as it restarts the server on code changes).
+
+3.  **Observe the logs:**
+    When the AI interacts with the task management endpoints, you will see detailed logs in your console where the `uvicorn` server is running. Look for messages from the `backend.src.routers.tasks` logger to understand what `task_id` or `task_title` was received, whether the task was found, if it was updated/deleted, or if any errors (like "Task not found" or "Multiple tasks found") occurred.
+    *   **New debug logs:** For updates, you'll now see `logger.debug` statements showing the exact `update_data` being processed, which will help verify if `description`, `due_date`, and `tags` are correctly parsed.
+
+**How the AI should interact with the new endpoints (and what to expect):**
+
+*   **To update a single task by title (existing functionality):**
+    The AI should still use the `PATCH /tasks/by-title/{task_title}` endpoint.
+    *   **Example AI prompt:** "Update the task with title 'my old task' to be 'my new task', description 'new description', due date 2025-12-01, priority high and tags 'important'."
+    *   **Backend expectation:** The AI will send a single PATCH request to `/tasks/by-title/my%20old%20task` with a body like `{"title": "my new task", "description": "new description", "due_date": "2025-12-01T00:00:00Z", "priority": "high", "tags": ["important"]}`. This should now correctly apply all fields in one go.
+
+*   **To delete a single task by title (existing functionality):**
+    The AI should still use the `DELETE /tasks/by-title/{task_title}` endpoint.
+    *   **Example AI prompt:** "Delete the task titled 'old task'."
+
+*   **To perform **bulk operations** (add, update, mark complete/pending for multiple tasks at once):**
+    The AI should now use the **new `PATCH /tasks/bulk` endpoint**. This endpoint accepts a list of update items. Each item can identify a task by `id` or `title` and specify its updates.
+    *   **Example AI prompt:** "Mark my tasks 'Task 1' and 'Task 2' as completed, and update 'Task 3' description to 'Reviewed'."
+    *   **Backend expectation:** The AI would send a single PATCH request to `/tasks/bulk` with a body like:
+        ```json
+        [
+            {
+                "title": "Task 1",
+                "updates": {"completed": true}
+            },
+            {
+                "title": "Task 2",
+                "updates": {"completed": true}
+            },
+            {
+                "title": "Task 3",
+                "updates": {"description": "Reviewed"}
+            }
+        ]
+        ```
+    *   **Log expectation:** You'll see logs for the bulk update, with results for each item in the batch, including successes, failures, and ambiguities.
+
+*   **Handling Ambiguity and Not Found:**
+    The backend will continue to return `404 Not Found` for single operations on non-existent tasks, and `409 Conflict` if an update/delete by title applies to multiple tasks. For bulk operations, the `TaskBulkUpdateResponse` will contain individual `status` and `message` fields for each item, making it clear which operations succeeded or failed within the batch.
+
+These changes should make the backend more robust and enable the AI to handle your requests more effectively, especially for bulk operations and multi-field updates.

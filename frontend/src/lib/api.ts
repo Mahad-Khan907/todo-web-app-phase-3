@@ -5,7 +5,7 @@ import axios, {
 } from 'axios'
 
 // No trailing slash in base URL (correct)
-const API_BASE_URL = 'https://phase-3-ai-backend-production.up.railway.app'
+const API_BASE_URL = 'https://mahad-khan907-todo-phase3-backend.hf.space/'
 
 const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
